@@ -8,7 +8,9 @@ import { useState } from 'react';
 
 export default function Navbar() {
   const { t } = useTranslation();
-  const { user, logout } = useAuth();
+  const auth = useAuth() || {};
+  const user = auth.user ?? null;
+  const logout = auth.logout ?? (() => {});
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
@@ -21,16 +23,13 @@ export default function Navbar() {
     <header className="bg-white/95 backdrop-blur-lg shadow-soft sticky top-0 z-50 border-b border-sand-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
           <NavLink to="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-bordeaux-500 to-bordeaux-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-              <Home className="w-5 h-5 text-white" />
+            <div className="w-12 h-12 bg-gradient-to-br from-primary-600 to-primary-700 rounded-3xl flex items-center justify-center shadow-xl transition-all duration-300 group-hover:shadow-2xl">
+              <Home className="w-6 h-6 text-white" />
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-xl font-bold text-navy-900 group-hover:text-bordeaux-500 transition-colors duration-300">
-                Houches Djerba
-              </h1>
-              <p className="text-xs text-navy-600 -mt-1">Traditional Homes</p>
+              <h1 className="text-xl font-bold text-slate-900 group-hover:text-primary-600 transition-colors duration-200">GRBA</h1>
+              <p className="text-xs text-slate-500 -mt-1">Luxury heritage experiences</p>
             </div>
           </NavLink>
 
@@ -42,13 +41,11 @@ export default function Navbar() {
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  className={({ isActive }) => `
-                    flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200
-                    ${isActive
-                      ? 'bg-bordeaux-50 text-bordeaux-600 shadow-sm'
-                      : 'text-navy-700 hover:bg-sand-50 hover:text-bordeaux-500'
-                    }
-                  `}
+                  className={({ isActive }) => `flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                    isActive
+                      ? 'bg-primary-100 text-primary-700 ring-1 ring-primary-200 shadow-sm'
+                      : 'text-slate-700 hover:bg-slate-50 hover:text-primary-700'
+                  }`}
                 >
                   <Icon className="w-4 h-4" />
                   <span>{item.label}</span>

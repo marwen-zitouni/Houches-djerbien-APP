@@ -66,7 +66,7 @@ export default function BookingForm({ listing }) {
       </h3>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-primary-50 border border-primary-200 text-primary-800 px-4 py-3 rounded-lg mb-6">
           {error}
         </div>
       )}

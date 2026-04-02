@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -15,6 +15,10 @@ export default function ListingCard({ listing, index, onImageChange }) {
   const [currentImage, setCurrentImage] = useState(listing.images[0]);
   
   const isAdminMode = user?.role === 'admin';
+
+  useEffect(() => {
+    setCurrentImage(listing.images[0]);
+  }, [listing.images]);
 
   const handleImageChange = (newUrl) => {
     setCurrentImage(newUrl);

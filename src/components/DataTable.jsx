@@ -118,7 +118,7 @@ export default function DataTable({ columns, rows, onEdit, onDelete, onStatusCha
                     )}
                     <motion.button
                       onClick={() => handleDelete(row)}
-                      className="text-red-600 hover:text-red-800"
+                      className="text-primary-600 hover:text-primary-800"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >

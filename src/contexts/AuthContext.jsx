@@ -1,17 +1,29 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { users } from '../data/mockData';
 
-const AuthContext = createContext();
+const defaultAuthContext = {
+  user: null,
+  login: () => false,
+  logout: () => {},
+  isAdmin: false,
+};
 
-export const useAuth = () => useContext(AuthContext);
+const AuthContext = createContext(defaultAuthContext);
+
+export const useAuth = () => useContext(AuthContext) || defaultAuthContext;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (error) {
+      console.error('Error loading user from localStorage:', error);
+      localStorage.removeItem('user');
     }
   }, []);
 

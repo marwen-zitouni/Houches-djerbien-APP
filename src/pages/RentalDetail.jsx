@@ -2,7 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import ImageGallery from '../components/ImageGallery';
 import BookingForm from '../components/BookingForm';
-import { listings } from '../data/mockData';
+import { loadListings } from '../data/storage';
 
 export default function RentalDetail() {
   const { id } = useParams();
@@ -13,7 +13,7 @@ export default function RentalDetail() {
   useEffect(() => {
     const fetchListing = async () => {
       try {
-        const foundListing = listings.find(l => l.id === id);
+        const foundListing = loadListings().find((l) => l.id === id);
         if (!foundListing) throw new Error('Listing not found');
         setListing(foundListing);
       } catch (err) {

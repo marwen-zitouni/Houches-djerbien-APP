@@ -46,7 +46,7 @@ export default function Login() {
 
         {method === 'email' && (
           <form onSubmit={handleEmailLogin}>
-            {error && <p className="text-red-500 mb-4">{error}</p>}
+            {error && <p className="text-primary-500 mb-4">{error}</p>}
             <input
               type="email"
               placeholder="Email"

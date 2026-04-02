@@ -1,42 +1,29 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import AppointmentForm from '../components/AppointmentForm';
+import { loadServices } from '../data/storage';
 
 export default function Construction() {
   const { t } = useTranslation();
+  const [service, setService] = useState(null);
 
-  const constructionImages = [
-    {
-      src: "https://images.unsplash.com/photo-1503387837-b154d5074bd2?w=800&h=600&fit=crop",
-      alt: "Traditional Djerba stone masonry construction with white walls",
-      titleKey: "stoneMasonry"
-    },
-    {
-      src: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&h=600&fit=crop",
-      alt: "Workers building traditional Tunisian house with blue doors",
-      titleKey: "houseRenovation"
-    },
-    {
-      src: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=600&fit=crop",
-      alt: "Construction of authentic Djerbian courtyard house",
-      titleKey: "traditionalArchitecture"
-    },
-    {
-      src: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop",
-      alt: "Mediterranean house renovation with traditional materials",
-      titleKey: "courtyardDevelopment"
-    },
-    {
-      src: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&h=600&fit=crop",
-      alt: "Roof construction using traditional Tunisian techniques",
-      titleKey: "roofConstruction"
-    },
-    {
-      src: "https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=800&h=600&fit=crop",
-      alt: "Facade restoration of historic Djerba house",
-      titleKey: "facadeRestoration"
-    }
-  ];
+  useEffect(() => {
+    setService(loadServices().find((item) => item.id === 'construction'));
+  }, []);
+
+  const constructionImages = (service?.images || []).map((src, index) => ({
+    src,
+    alt: `Construction service image ${index + 1}`,
+    titleKey: [
+      'stoneMasonry',
+      'houseRenovation',
+      'traditionalArchitecture',
+      'courtyardDevelopment',
+      'roofConstruction',
+      'facadeRestoration',
+    ][index] || 'constructionProjects',
+  }));
 
   const containerVariants = {
     hidden: { opacity: 0 },

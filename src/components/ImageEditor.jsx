@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Edit2, X, Check, AlertCircle } from 'lucide-react';
-import { Button } from './ui';
 
 export default function ImageEditor({ 
   imageUrl, 
@@ -14,13 +13,17 @@ export default function ImageEditor({
   const [message, setMessage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(imageUrl);
 
+  useEffect(() => {
+    setPreviewUrl(imageUrl);
+  }, [imageUrl]);
+
   const sizeClasses = {
     small: 'w-24 h-24',
     medium: 'w-48 h-48',
     large: 'w-full h-96',
   };
 
-  const handleFileSelect = async (e) => {
+  const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -38,33 +41,28 @@ export default function ImageEditor({
     setIsLoading(true);
     setMessage(null);
 
-    try {
-      // Convert file to data URL
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const newUrl = event.target.result;
-        setPreviewUrl(newUrl);
-        
-        // Call the callback with the new URL
-        if (onImageChange) {
-          onImageChange(newUrl);
-        }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const newUrl = event.target.result;
+      setPreviewUrl(newUrl);
 
-        // Show success message
-        setMessage({ type: 'success', text: 'Image updated successfully!' });
-        
-        // Auto-hide the edit mode after success
-        setTimeout(() => {
-          setIsEditing(false);
-          setMessage(null);
-        }, 1500);
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to update image' });
-    } finally {
+      if (onImageChange) {
+        onImageChange(newUrl);
+      }
+
+      setMessage({ type: 'success', text: 'Image updated successfully!' });
+
+      setTimeout(() => {
+        setIsEditing(false);
+        setMessage(null);
+      }, 1500);
       setIsLoading(false);
-    }
+    };
+    reader.onerror = () => {
+      setMessage({ type: 'error', text: 'Failed to update image' });
+      setIsLoading(false);
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -83,7 +81,10 @@ export default function ImageEditor({
             initial={{ opacity: 0 }}
             whileHover={{ opacity: 1 }}
             className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-200"
-            onClick={() => setIsEditing(true)}
+            onClick={(event) => {
+              event.stopPropagation();
+              setIsEditing(true);
+            }}
           >
             <div className="flex flex-col items-center space-y-2">
               <Edit2 className="w-8 h-8 text-white" />
@@ -158,7 +159,7 @@ export default function ImageEditor({
                   className={`flex items-center space-x-2 p-3 rounded-lg ${
                     message.type === 'success'
                       ? 'bg-green-50 text-green-700'
-                      : 'bg-red-50 text-red-700'
+                      : 'bg-primary-50 text-primary-700'
                   }`}
                 >
                   {message.type === 'success' ? (

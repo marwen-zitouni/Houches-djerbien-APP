@@ -1,17 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardStats from '../components/DashboardStats';
 import { listings, bookings, cleaningRequests, constructionRequests } from '../data/mockData';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { loadConsultationRequests } from '../data/storage';
+import { ChevronLeft, ChevronRight, Bell } from 'lucide-react';
 
 export default function DashboardOverview() {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [consultationRequests, setConsultationRequests] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const requests = loadConsultationRequests();
+    setConsultationRequests(requests);
+    setUnreadCount(requests.filter((req) => !req.isRead).length);
+
+    const handleUpdate = () => {
+      const updatedRequests = loadConsultationRequests();
+      setConsultationRequests(updatedRequests);
+      setUnreadCount(updatedRequests.filter((req) => !req.isRead).length);
+    };
+
+    window.addEventListener('consultation-request-submitted', handleUpdate);
+    window.addEventListener('homepage-config-updated', handleUpdate);
+
+    return () => {
+      window.removeEventListener('consultation-request-submitted', handleUpdate);
+      window.removeEventListener('homepage-config-updated', handleUpdate);
+    };
+  }, []);
 
   const revenue = bookings.reduce((sum, b) => sum + b.total, 0);
   const stats = [
     { label: 'Total rentals', value: listings.length },
     { label: 'Total bookings', value: bookings.length },
     { label: 'Cleaning requests', value: cleaningRequests.length },
-    { label: 'Construction requests', value: constructionRequests.length },
+    { label: 'Construction requests', value: constructionRequests.length + consultationRequests.length },
     { label: 'Revenue (mock)', value: `$${revenue}` },
   ];
 
@@ -200,11 +223,40 @@ export default function DashboardOverview() {
 
       {/* Recent Events */}
       <div className="bg-white rounded-lg shadow-lg p-6">
-        <h3 className="text-2xl font-bold text-navy mb-4">Upcoming Events</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-2xl font-bold text-navy">Upcoming Events & Requests</h3>
+          {unreadCount > 0 && (
+            <div className="flex items-center gap-2 bg-primary-50 border border-primary-200 rounded-lg px-3 py-2">
+              <Bell className="w-5 h-5 text-primary-600" />
+              <span className="text-sm font-semibold text-primary-600">{unreadCount} new consultation request{unreadCount !== 1 ? 's' : ''}</span>
+            </div>
+          )}
+        </div>
         <div className="space-y-3">
+          {consultationRequests.length > 0 && (
+            <>
+              <h4 className="font-semibold text-purple-700">Consultation Requests:</h4>
+              {consultationRequests.slice(0, 2).map((req) => (
+                <div
+                  key={req.id}
+                  className={`p-3 rounded-lg border-l-4 ${
+                    req.isRead
+                      ? 'bg-gray-50 border-gray-300'
+                      : 'bg-purple-50 border-purple-500'
+                  }`}
+                >
+                  <p className="font-medium">{req.name} {!req.isRead && <span className="text-xs bg-purple-200 text-purple-700 px-2 py-1 rounded ml-2">NEW</span>}</p>
+                  <p className="text-sm text-gray-600">
+                    Type: <span className="font-semibold capitalize">{req.type}</span> | Email: <span className="font-semibold">{req.email}</span>
+                  </p>
+                </div>
+              ))}
+            </>
+          )}
+
           {bookings.length > 0 && (
             <>
-              <h4 className="font-semibold text-blue-700">Recent Bookings:</h4>
+              <h4 className="font-semibold text-blue-700 mt-4">Recent Bookings:</h4>
               {bookings.slice(0, 3).map((booking) => (
                 <div
                   key={booking.id}

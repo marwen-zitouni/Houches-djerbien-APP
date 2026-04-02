@@ -55,18 +55,35 @@ export const services = [
     title: 'Traditional House Rentals',
     description: 'Authentic Djerbian Houch houses for your perfect vacation',
     features: ['Authentic architecture', 'Local hospitality', 'Cultural experience'],
+    images: [
+      'https://images.unsplash.com/photo-1505691723518-22f6ec18b7da?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1482192505345-5655af888cc4?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80'
+    ],
   },
   {
     id: 'construction',
     title: 'Construction & Renovation',
     description: 'Expert building and restoration of traditional Djerbian houses',
     features: ['Traditional techniques', 'Local materials', 'Expert craftsmen'],
+    images: [
+      'https://images.unsplash.com/photo-1503387837-b154d5074bd2?w=1200&h=900&fit=crop',
+      'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=1200&h=900&fit=crop',
+      'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1200&h=900&fit=crop',
+      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=900&fit=crop',
+    ],
   },
   {
     id: 'cleaning',
     title: 'Professional Cleaning',
     description: 'Thorough cleaning services for homes and hospitality properties',
     features: ['Deep cleaning', 'Eco-friendly products', 'Local expertise'],
+    images: [
+      'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=1200&h=900&fit=crop',
+      'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=1200&h=900&fit=crop',
+      'https://images.unsplash.com/photo-1527515545081-5db817172677?w=1200&h=900&fit=crop',
+      'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1200&h=900&fit=crop',
+    ],
   },
 ];
 

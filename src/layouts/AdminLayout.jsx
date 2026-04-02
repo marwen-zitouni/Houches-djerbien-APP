@@ -6,38 +6,39 @@ import { Menu, X } from 'lucide-react';
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
     <div className="min-h-screen bg-sand text-navy">
       <div className="flex">
-        {/* Mobile Menu Toggle */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="fixed top-4 left-4 z-50 md:hidden bg-white p-2 rounded-lg shadow-lg"
+          className="fixed top-4 left-4 z-50 md:hidden bg-white p-2 rounded-xl shadow-lg border border-slate-200"
           aria-label="Toggle sidebar"
         >
-          {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {sidebarOpen ? <X className="w-6 h-6 text-slate-700" /> : <Menu className="w-6 h-6 text-slate-700" />}
         </button>
 
-        {/* Overlay for mobile */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 bg-black/50 z-30 md:hidden"
+            className="fixed inset-0 bg-black/40 z-30 md:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
-        {/* Sidebar */}
         <div
-          className={`fixed md:static z-40 transition-transform duration-300 ${
+          className={`fixed md:static z-40 transition-all duration-300 ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          } md:translate-x-0`}
+          } md:translate-x-0 ${sidebarCollapsed ? 'w-full md:w-20' : 'w-full md:w-72'}`}
         >
-          <AdminSidebar onClose={() => setSidebarOpen(false)} />
+          <AdminSidebar
+            onClose={() => setSidebarOpen(false)}
+            collapsed={sidebarCollapsed}
+            onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
+          />
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 w-full">
+        <div className="flex-1 w-full md:pl-0">
           <AdminNavbar />
           <main className="p-4 md:p-6">
             <Outlet />

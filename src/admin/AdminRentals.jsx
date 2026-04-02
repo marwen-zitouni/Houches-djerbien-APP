@@ -1,19 +1,21 @@
 import { useState } from 'react';
-import { listings as initialListings } from '../data/mockData';
+import { loadListings, saveListings } from '../data/storage';
 import DataTable from '../components/DataTable';
 import { X, Plus, Edit2, Trash2 } from 'lucide-react';
 
 export default function AdminRentals() {
-  const [allListings, setAllListings] = useState(initialListings);
+  const [allListings, setAllListings] = useState(() => loadListings());
   const [editing, setEditing] = useState(null);
   const [imagePreview, setImagePreview] = useState([]);
   const [success, setSuccess] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [form, setForm] = useState({
     title: '',
     location: '',
     price: '',
     rating: '',
-    images: '',
+    images: [],
     amenities: '',
     description: '',
     host: '',
@@ -37,7 +39,7 @@ export default function AdminRentals() {
           </button>
           <button
             onClick={() => handleDelete(row.id)}
-            className="px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600 flex items-center gap-1"
+            className="px-3 py-1 bg-primary-500 text-white rounded text-xs hover:bg-primary-600 flex items-center gap-1"
           >
             <Trash2 className="w-3 h-3" /> Delete
           </button>
@@ -54,7 +56,7 @@ export default function AdminRentals() {
       location: listing.location,
       price: listing.price,
       rating: listing.rating,
-      images: listing.images.join(', '),
+      images: listing.images || [],
       amenities: listing.amenities.join(', '),
       description: listing.description,
       host: `${listing.host.name} (${listing.host.avatar})`,
@@ -64,7 +66,9 @@ export default function AdminRentals() {
 
   const handleDelete = (id) => {
     if (confirm('Are you sure you want to delete this listing?')) {
-      setAllListings(allListings.filter((l) => l.id !== id));
+      const updated = allListings.filter((l) => l.id !== id);
+      setAllListings(updated);
+      saveListings(updated);
       setSuccess('Listing deleted successfully!');
       setTimeout(() => setSuccess(''), 3000);
     }
@@ -72,83 +76,96 @@ export default function AdminRentals() {
 
   const handleCancel = () => {
     setEditing(null);
-    setForm({ title: '', location: '', price: '', rating: '', images: '', amenities: '', description: '', host: '' });
+    setForm({ title: '', location: '', price: '', rating: '', images: [], amenities: '', description: '', host: '' });
     setImagePreview([]);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (isUploading) {
+      alert('Please wait for the image upload to finish before saving.');
+      return;
+    }
+
     if (!form.title || !form.location || !form.price) {
       alert('Please fill in all required fields (Title, Location, Price)');
       return;
     }
 
-    if (editing && editing !== 'new') {
-      setAllListings(
-        allListings.map((l) =>
-          l.id === editing
-            ? {
-                ...l,
-                title: form.title,
-                location: form.location,
-                price: parseFloat(form.price),
-                rating: parseFloat(form.rating),
-                images: form.images.split(',').map((s) => s.trim()),
-                amenities: form.amenities.split(',').map((s) => s.trim()),
-                description: form.description,
-                host: {
-                  name: form.host.split(' (')[0],
-                  avatar: form.host.split(' (')[1]?.replace(')', '') || '',
-                },
-              }
-            : l
-        )
-      );
-      setSuccess('Listing updated successfully!');
-    } else {
-      const newListing = {
-        id: Date.now().toString(),
+    setIsSaving(true);
+    try {
+      const updatedListing = {
         title: form.title,
         location: form.location,
         price: parseFloat(form.price),
-        rating: parseFloat(form.rating),
-        images: form.images.split(',').map((s) => s.trim()),
-        amenities: form.amenities.split(',').map((s) => s.trim()),
+        rating: parseFloat(form.rating) || 0,
+        images: form.images,
+        amenities: form.amenities.split(',').map((s) => s.trim()).filter(Boolean),
         description: form.description,
         host: {
           name: form.host.split(' (')[0] || 'Host',
           avatar: form.host.split(' (')[1]?.replace(')', '') || '',
         },
-        coordinates: { lat: 33.876, lng: 10.858 },
       };
-      setAllListings([...allListings, newListing]);
-      setSuccess('Listing created successfully!');
-    }
 
-    setTimeout(() => setSuccess(''), 3000);
-    handleCancel();
+      let updated;
+      if (editing && editing !== 'new') {
+        updated = allListings.map((l) =>
+          l.id === editing ? { ...l, ...updatedListing } : l
+        );
+        setSuccess('Listing updated successfully!');
+      } else {
+        const newListing = {
+          id: Date.now().toString(),
+          ...updatedListing,
+          coordinates: { lat: 33.876, lng: 10.858 },
+        };
+        updated = [...allListings, newListing];
+        setSuccess('Listing created successfully!');
+      }
+
+      setAllListings(updated);
+      saveListings(updated);
+      handleCancel();
+      setTimeout(() => setSuccess(''), 3000);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    setIsUploading(true);
     const promises = files.map(
       (file) =>
-        new Promise((resolve) => {
+        new Promise((resolve, reject) => {
           const reader = new FileReader();
-          reader.onload = (e) => resolve(e.target.result);
+          reader.onload = (event) => resolve(event.target.result);
+          reader.onerror = reject;
           reader.readAsDataURL(file);
         })
     );
-    Promise.all(promises).then((urls) => {
-      const currentImages = form.images ? form.images.split(', ') : [];
-      setImagePreview([...currentImages, ...urls]);
-      setForm({ ...form, images: [...currentImages, ...urls].join(', ') });
-    });
+
+    Promise.all(promises)
+      .then((urls) => {
+        const currentImages = form.images || [];
+        const mergedImages = [...currentImages, ...urls];
+        setImagePreview(mergedImages);
+        setForm({ ...form, images: mergedImages });
+      })
+      .catch(() => {
+        alert('One or more images could not be uploaded. Please try again.');
+      })
+      .finally(() => {
+        setIsUploading(false);
+      });
   };
 
   const removeImage = (index) => {
     const newPreview = imagePreview.filter((_, i) => i !== index);
     setImagePreview(newPreview);
-    setForm({ ...form, images: newPreview.join(', ') });
+    setForm({ ...form, images: newPreview });
   };
 
   return (
@@ -158,7 +175,7 @@ export default function AdminRentals() {
         <button
           onClick={() => {
             setEditing('new');
-            setForm({ title: '', location: '', price: '', rating: '', images: '', amenities: '', description: '', host: '' });
+            setForm({ title: '', location: '', price: '', rating: '', images: [], amenities: '', description: '', host: '' });
             setImagePreview([]);
           }}
           className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
@@ -302,7 +319,7 @@ export default function AdminRentals() {
                     />
                     <button
                       onClick={() => removeImage(idx)}
-                      className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 bg-primary-500 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -316,9 +333,10 @@ export default function AdminRentals() {
           <div className="flex gap-3 mt-6 pt-6 border-t">
             <button
               onClick={handleSave}
-              className="px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 font-medium"
+              disabled={isSaving}
+              className="px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Save Listing
+              {isSaving ? 'Saving...' : 'Save Listing'}
             </button>
             <button
               onClick={handleCancel}
